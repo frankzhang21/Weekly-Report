@@ -51,7 +51,7 @@ Go_button$clickElement()
 Response <- read_html(remDr$getPageSource()[[1]])
 net_member_table <- html_table(Response,fill = TRUE)[[2]]
 names(net_member_table) <- c("Country",str_c(c("Top20","Newsflash","Local_Deails"),"Subscriptions",sep="_"),"Subscribers")
-new_member_by_country <- tibble(Country=net_member_table$Country[2:7],Net_Member=net_member_table$Subscribers[2:7])
+new_member_by_country <- tibble(Country=net_member_table$Country[2:7],Net_Member=to_interger(net_member_table$Subscribers[2:7]))
 final_table <- data.table(new_member_by_country)
 
 # Data for New&Unsubs -----------------------------------------------------
@@ -94,3 +94,61 @@ new_unsub_table <- html_table(Response,fill = TRUE)[[2]]
 final_table[Country==Country_name,c("New_sub","Un_sub"):=.(to_interger(new_unsub_table$Subscribes[1]),
             to_interger(new_unsub_table$`Total Unsubscribes`[1]))]
 }
+
+
+# Data for production -----------------------------------------------------
+
+remDr$navigate("https://intranet.travelzoo.com/office/top20/eu/?tzlocale=10")
+
+##Manually adjust week number and show stats
+
+
+for (i in final_table$Country) {
+  
+  
+  locale_button <- remDr$findElement(using = "xpath",'//*[@id="intranetHeaderBreadcrumbs"]/form/select')
+  Country_name <- i
+  locale_button$sendKeysToElement(list(Country_name))
+  
+  Sys.sleep(1.5)
+  
+  Response <- read_html(remDr$getPageSource()[[1]])
+  production_table <- html_table(Response,fill = TRUE)[[7]]
+  names(production_table) <- c("names","data")
+  final_table[Country==Country_name,c("Delivery","Clicks","Open_Count"):=.(to_interger(production_table$data[1]),
+                                                             to_interger(production_table$data[2]),
+                                                             to_interger(production_table$data[4]))]
+}
+
+reshape_version <- melt(final_table,id.vars = "Country") %>% 
+  spread(Country,value) %>% 
+  setcolorder(c("variable","JP","AU","CN","HK","TW","AE"))
+
+write_xlsx(as.data.frame(reshape_version),"H:/Report/Weekly/Report parts/Market_Production.xlsx")
+
+
+# Top20 CTR Report --------------------------------------------------------
+
+Country_list <- c("AE","AU","CA","CN","DE","ES","FR","HK","JP","TW","UK","US")
+
+Top20_CTR <- data.table(Country=Country_list,CTR="cha",Open_rate=100)
+
+for (i in Country_list) {
+  
+  
+  locale_button <- remDr$findElement(using = "xpath",'//*[@id="intranetHeaderBreadcrumbs"]/form/select')
+  Country_name <- i
+  locale_button$sendKeysToElement(list(Country_name))
+  
+  Sys.sleep(1.5)
+  
+  Response <- read_html(remDr$getPageSource()[[1]])
+  production_table <- html_table(Response,fill = TRUE)[[7]]
+  names(production_table) <- c("names","data")
+  Top20_CTR[Country==Country_name,c("CTR","Open_rate"):=.(str_remove_all(production_table$data[3],"%"),
+                                                                           to_interger(str_remove_all(production_table$data[5],"%")))]
+}
+Top20_CTR[,CTR:=as.numeric(CTR)]
+
+write_xlsx(as.data.frame(Top20_CTR),"H:/Report/Weekly/Report parts/Top20_CTR.xlsx")
+
