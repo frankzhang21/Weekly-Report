@@ -5,6 +5,13 @@ library(readxl)
 library(writexl)
 library(lubridate)
 library(rvest)
+
+
+# Functions dim -----------------------------------------------------------
+
+replace_comma <- partial(str_remove_all,pattern=",")
+to_interger <- compose(as.integer,replace_comma)
+
 # Settings-Rselenium ---------------------------------------------------------------
 
 
@@ -45,6 +52,45 @@ Response <- read_html(remDr$getPageSource()[[1]])
 net_member_table <- html_table(Response,fill = TRUE)[[2]]
 names(net_member_table) <- c("Country",str_c(c("Top20","Newsflash","Local_Deails"),"Subscriptions",sep="_"),"Subscribers")
 new_member_by_country <- tibble(Country=net_member_table$Country[2:7],Net_Member=net_member_table$Subscribers[2:7])
+final_table <- data.table(new_member_by_country)
+
+# Data for New&Unsubs -----------------------------------------------------
+
+#junmp to new&unsubs
+
+new_unsub_start_date <- "1/1/2019"
+new_unsub_button <- remDr$findElement(using = "xpath",'//*[@id="rptTabs_ctl02_lnkTab"]')
+new_unsub_button$clickElement()
+
+#Set dates first
+new_unsub_start_date_form <- remDr$findElement(using = "xpath",'//*[@id="txtSUTFrom"]')
+new_unsub_start_date_form$clearElement()
+new_unsub_start_date_form$sendKeysToElement(list(new_unsub_start_date))
+
+new_unsub_end_date_form <- remDr$findElement(using = "xpath",'//*[@id="txtSUTTo"]')
+new_unsub_end_date_form$clearElement()
+new_unsub_end_date_form$sendKeysToElement(list(text_format_mondy))
+
+#Loop over different country
+
+for (i in final_table$Country) {
+  
+
+locale_button <- remDr$findElement(using = "xpath",'//*[@id="drpSUTLocale"]')
+Country_name <- i
+locale_button$sendKeysToElement(list(Country_name))
 
 
 
+scale <- remDr$findElement(using = "xpath",'//*[@id="drpSUTScale"]')
+scale$sendKeysToElement(list("monthly"))
+
+Go_button <- remDr$findElement(using = "xpath",'//*[@id="btnSUTGo"]')
+Go_button$clickElement()
+
+Response <- read_html(remDr$getPageSource()[[1]])
+new_unsub_table <- html_table(Response,fill = TRUE)[[2]]
+
+final_table[Country==Country_name,c("New_sub","Un_sub"):=.(to_interger(new_unsub_table$Subscribes[1]),
+            to_interger(new_unsub_table$`Total Unsubscribes`[1]))]
+}
