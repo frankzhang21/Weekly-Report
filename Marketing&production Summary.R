@@ -114,11 +114,17 @@ for (i in final_table$Country) {
   
   Response <- read_html(remDr$getPageSource()[[1]])
   production_table <- html_table(Response,fill = TRUE)[[7]]
+  clicks_table <- html_table(Response,fill = TRUE)[[6]]
+  clicks_string <- names(clicks_table)[5]
   names(production_table) <- c("names","data")
-  final_table[Country==Country_name,c("Delivery","Clicks","Open_Count"):=.(to_interger(production_table$data[1]),
-                                                             to_interger(production_table$data[2]),
-                                                             to_interger(production_table$data[4]))]
+  final_table[Country==Country_name,c("Delivery","Clicks","Open_Count","Primary","Secondary"):=.(to_interger(production_table$data[1]),#Newsletters Sent
+                                                             to_interger(production_table$data[2]),#Newsletters Clicks
+                                                             to_interger(production_table$data[4]),#Open Count
+                                                             to_interger(str_match(clicks_string,"Primary (.+)\\n")[,2]),#Primary Clicks
+                                                             to_interger(str_match(clicks_string,"Secondary (.+)")[,2]))]#Secondary Clicks
 }
+
+
 
 reshape_version <- melt(final_table,id.vars = "Country") %>% 
   spread(Country,value) %>% 
@@ -148,6 +154,7 @@ for (i in Country_list) {
   Top20_CTR[Country==Country_name,c("CTR","Open_rate"):=.(str_remove_all(production_table$data[3],"%"),
                                                                            to_interger(str_remove_all(production_table$data[5],"%")))]
 }
+
 Top20_CTR[,CTR:=as.numeric(CTR)]
 
 write_xlsx(as.data.frame(Top20_CTR),"H:/Report/Weekly/Report parts/Top20_CTR.xlsx")

@@ -19,5 +19,21 @@ holiday[!is.na(Sound),c("Sum_clicks","Sum_second_clicks"):=lapply(.SD,sum),by=So
 with_dup <- holiday[!is.na(Sound),.SD[1],by=Sound]
 without_dup <- holiday[is.na(Sound),]
 
-write_xlsx(with_dup,"H:/with.xlsx")
-write_xlsx(without_dup,"H:/without.xlsx")
+write_xlsx(with_dup,"H:/with1.xlsx")
+write_xlsx(without_dup,"H:/without1.xlsx")
+
+hotel <- read_excel(file.choose())
+
+hotel_a <- hotel %>% 
+  separate(Publication_Date,into = c("Week","Raw_date"),sep = ",") %>% 
+  separate(Raw_date,into = c("Year","true_date"),sep="\\(")
+hotel_a$true_date <- str_remove(hotel_a$true_date,"\\)")
+
+hotel_a <- read_excel(file.choose())
+a <- hotel_a %>% 
+  mutate(Sound=phonetic(Headline))
+setDT(a)
+
+
+a[,Count:=.N,by=Sound][]
+write_xlsx(a,"H:/hotel.xlsx")
