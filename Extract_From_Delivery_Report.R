@@ -4,6 +4,7 @@ library(writexl)
 library(RSelenium)
 library(readxl)
 library(data.table)
+library(lubridate)
 
 # Pre-Settings ------------------------------------------------------------
 
@@ -56,11 +57,11 @@ remDr$navigate("https://intranet.travelzoo.com/common/production/DeliveryPeriodR
 
 ## Click exclude results with no delivery mannually
 
-for (i in Country_list[1]) {
+for (i in Country_list) {
   locale <- remDr$findElement(using = "xpath", '//*[@id="ddlLocales"]')
   locale$sendKeysToElement(list(i))
 
-  for (n in 3:nrow(week_index)) {
+  for (n in 2:nrow(week_index)) {
     start_date <- remDr$findElement(using = "xpath", '//*[@id="txtStartDate"]')
     start_date$clearElement()
     start_date$sendKeysToElement(list(week_index$Start_Date[n]))
@@ -95,7 +96,9 @@ for (i in Country_list[1]) {
       pivot_table_text <- pivot_table$getElementText()[[1]]
       
       a <- pivot_table_text
-      b <- str_match_all(a,"[:lower:]{1} \\d+ [¥$]{1} (.+\\.\\d{2}) \\d")
+      if(i=="HK"){b <- str_match_all(a,"[:lower:]{1} \\d+,*\\d* HK[¥$]{1} (.+\\.\\d{2}) \\d")
+      }else{b <- str_match_all(a,"[:lower:]{1} \\d+,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")}
+      
       c <- data.table(b[[1]])
       d <- c[.N,2]
       dev_amount <- d$V2
@@ -115,3 +118,7 @@ for (i in Country_list[1]) {
   }
 }
 
+sum_nm <- partial(sum,na.rm=TRUE)
+sum_table <- country_table[,lapply(.SD, sum_nm),by=Country,.SDcols=c("Destination","Newflash (Flat fee)","Top 20 (Flat fee)","Website Placements")]
+setcolorder(sum_table,c("Country" ,"Top 20 (Flat fee)","Newflash (Flat fee)","Website Placements","Destination"))
+sum_table
