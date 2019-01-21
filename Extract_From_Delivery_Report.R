@@ -5,8 +5,25 @@ library(RSelenium)
 library(readxl)
 library(data.table)
 library(lubridate)
+# Current table -----------------------------------------------------------
 
+current_tb <- read_excel(file.choose(),sheet = "DB",col_types = "text") #read from last week report db
+setDT(current_tb)
+
+sum_nm <- partial(sum,na.rm=TRUE)
+setnames(current_tb,names(current_tb)[c(4,5,10)],c("YEAR_AND_QUARTER","Country","Revenue"))
+cols <- copy(names(current_tb))
+current_tb[,c(cols[7:9],cols[11:20]):=NULL]
+current_tb[,Revenue:=as.numeric(Revenue)]
+
+b_tb <- current_tb[,.(Revenue=sum_nm(Revenue)),by=c("YEAR","QUARTER","WEEK","YEAR_AND_QUARTER","Country","Product")]
+
+
+wide_current_tb <- dcast(b_tb,YEAR+QUARTER+WEEK+YEAR_AND_QUARTER+Country~Product,value.var = "Revenue")
 # Pre-Settings ------------------------------------------------------------
+
+
+
 
 Country_list <- c("JP", "AU", "SG", "CN", "HK")
 
@@ -55,7 +72,11 @@ remDr$setTimeout(type = "page load", milliseconds = 200000)
 
 remDr$navigate("https://intranet.travelzoo.com/common/production/DeliveryPeriodReport.aspx")
 
-## Click exclude results with no delivery mannually
+exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExcludeNoDelivery"]')
+# Uncomment if want to exclude results with no delivery
+exclude_delivery_checkbox$clickElement()
+
+
 
 for (i in Country_list) {
   locale <- remDr$findElement(using = "xpath", '//*[@id="ddlLocales"]')
@@ -70,9 +91,7 @@ for (i in Country_list) {
     end_date$clearElement()
     end_date$sendKeysToElement(list(week_index$End_Date[n]))
 
-    # exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExcludeNoDelivery"]')
-    # # Uncomment if want to exclude results with no delivery
-    # exclude_delivery_checkbox$clickElement()
+
 
     # include_CPC <- remDr$findElement(using = "xpath",'//*[@id="chkIncludeOnlyCPC"]')
     # include_CPC$clickElement()
@@ -117,8 +136,14 @@ for (i in Country_list) {
     }
   }
 }
+table_from_db <- wide_current_tb[YEAR_AND_QUARTER=="2019 Q1",]
 
-sum_nm <- partial(sum,na.rm=TRUE)
-sum_table <- country_table[,lapply(.SD, sum_nm),by=Country,.SDcols=c("Destination","Newflash (Flat fee)","Top 20 (Flat fee)","Website Placements")]
-setcolorder(sum_table,c("Country" ,"Top 20 (Flat fee)","Newflash (Flat fee)","Website Placements","Destination"))
-sum_table
+table_from_db <- table_from_db %>% 
+  select(WEEK,Country,`Destination Page`,newsflash,`TOP 20`,`Travelzoo Website`)
+
+
+setcolorder(country_table,c("Week","Country","Destination","Newflash (Flat fee)","Top 20 (Flat fee)","Website Placements" ))
+report_from_website <- country_table[order(Week,Country)]
+report_from_website[is.na(report_from_website)] <- 0
+table_from_db[,Country:=str_replace(Country,"SEA","SG")]
+report_from_website==table_from_db
