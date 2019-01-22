@@ -46,7 +46,7 @@ remDr$navigate("https://intranet.travelzoo.com/dashboard/subscriber/")
 # Ending date for net members
 net_member_end_date <- remDr$findElement(using = "xpath", '//*[@id="txtSSDateEnding"]') # Assign to var
 net_member_end_date$clearElement() # Clear date input form
-x <- Sys.Date() - 3
+report_week_monday <- Sys.Date() - 3
 text_format_mondy <- change_date(report_week_monday)
 net_member_end_date$sendKeysToElement(list(text_format_mondy)) # enter right date
 
@@ -158,6 +158,8 @@ for (i in Country_list) {
 Top20_CTR[, CTR := as.numeric(CTR)]
 
 write_xlsx(as.data.frame(Top20_CTR), "H:/Report/Weekly/Report parts/Top20_CTR.xlsx")
+
+
 # Score Card --------------------------------------------------------------
 
 remDr$navigate("https://intranet.travelzoo.com/common/marketing/QualityScoreGrid.aspx")
