@@ -133,7 +133,31 @@ for (i in final_table$Country) {
 
 
 
+# Top20 CTR Report --------------------------------------------------------
 
+Country_list <- c("AE", "AU", "CA", "CN", "DE", "ES", "FR", "HK", "JP", "TW", "UK", "US")
+
+Top20_CTR <- data.table(Country = Country_list, CTR = "cha", Open_rate = 100)
+
+for (i in Country_list) {
+  locale_button <- remDr$findElement(using = "xpath", '//*[@id="intranetHeaderBreadcrumbs"]/form/select')
+  Country_name <- i
+  locale_button$sendKeysToElement(list(Country_name))
+  
+  Sys.sleep(1.5)
+  
+  Response <- read_html(remDr$getPageSource()[[1]])
+  production_table <- html_table(Response, fill = TRUE)[[7]]
+  names(production_table) <- c("names", "data")
+  Top20_CTR[Country == Country_name, c("CTR", "Open_rate") := .(
+    str_remove_all(production_table$data[3], "%"),
+    to_interger(str_remove_all(production_table$data[5], "%"))
+  )]
+}
+
+Top20_CTR[, CTR := as.numeric(CTR)]
+
+write_xlsx(as.data.frame(Top20_CTR), "H:/Report/Weekly/Report parts/Top20_CTR.xlsx")
 # Score Card --------------------------------------------------------------
 
 remDr$navigate("https://intranet.travelzoo.com/common/marketing/QualityScoreGrid.aspx")
@@ -188,28 +212,4 @@ reshape_version <- melt(final_table, id.vars = "Country") %>%
 
 write_xlsx(as.data.frame(reshape_version), "H:/Report/Weekly/Report parts/Market_Production.xlsx")
 
-# Top20 CTR Report --------------------------------------------------------
 
-Country_list <- c("AE", "AU", "CA", "CN", "DE", "ES", "FR", "HK", "JP", "TW", "UK", "US")
-
-Top20_CTR <- data.table(Country = Country_list, CTR = "cha", Open_rate = 100)
-
-for (i in Country_list) {
-  locale_button <- remDr$findElement(using = "xpath", '//*[@id="intranetHeaderBreadcrumbs"]/form/select')
-  Country_name <- i
-  locale_button$sendKeysToElement(list(Country_name))
-
-  Sys.sleep(1.5)
-
-  Response <- read_html(remDr$getPageSource()[[1]])
-  production_table <- html_table(Response, fill = TRUE)[[7]]
-  names(production_table) <- c("names", "data")
-  Top20_CTR[Country == Country_name, c("CTR", "Open_rate") := .(
-    str_remove_all(production_table$data[3], "%"),
-    to_interger(str_remove_all(production_table$data[5], "%"))
-  )]
-}
-
-Top20_CTR[, CTR := as.numeric(CTR)]
-
-write_xlsx(as.data.frame(Top20_CTR), "H:/Report/Weekly/Report parts/Top20_CTR.xlsx")
