@@ -12,6 +12,9 @@ library(rvest)
 replace_comma <- partial(str_remove_all, pattern = ",")
 to_interger <- compose(as.integer, replace_comma)
 
+change_date <- function(x){
+  return(str_c(day(x), month(x), year(x), sep = "/"))
+}
 # Settings-Rselenium ---------------------------------------------------------------
 
 
@@ -43,8 +46,8 @@ remDr$navigate("https://intranet.travelzoo.com/dashboard/subscriber/")
 # Ending date for net members
 net_member_end_date <- remDr$findElement(using = "xpath", '//*[@id="txtSSDateEnding"]') # Assign to var
 net_member_end_date$clearElement() # Clear date input form
-report_week_monday <- Sys.Date() - 3
-text_format_mondy <- str_c(day(report_week_monday), month(report_week_monday), year(report_week_monday), sep = "/")
+x <- Sys.Date() - 3
+text_format_mondy <- change_date(report_week_monday)
 net_member_end_date$sendKeysToElement(list(text_format_mondy)) # enter right date
 
 Go_button <- remDr$findElement(using = "xpath", '//*[@id="btnSSSubmit"]')
@@ -128,12 +131,62 @@ for (i in final_table$Country) {
 
 
 
+
+
+
+# Score Card --------------------------------------------------------------
+
+remDr$navigate("https://intranet.travelzoo.com/common/marketing/QualityScoreGrid.aspx")
+
+this_thursday <- Sys.Date()
+
+this_thursday <- ymd("2019-01-17")
+sub_from <- remDr$findElement(using = "xpath",'//*[@id="txtSubscribedFrom"]')
+sub_from$clearElement()
+sub_from_date <- this_thursday-22
+
+sub_from_date <- change_date(sub_from_date)
+sub_from$sendKeysToElement(list(sub_from_date))
+
+sub_to <- remDr$findElement(using = "xpath",'//*[@id="txtSubscribedTo"]')
+sub_to$clearElement()
+sub_to$sendKeysToElement(list(change_date(this_thursday-16)))
+
+click_from <- remDr$findElement(using = "xpath",'//*[@id="txtClickedFrom"]')
+click_from$clearElement()
+click_from$sendKeysToElement(list(change_date(this_thursday-15)))
+
+click_to <- remDr$findElement(using = "xpath",'//*[@id="txtClickedTo"]')
+click_to$clearElement()
+click_to$sendKeysToElement(list(change_date(this_thursday-2)))
+
+score_card_smt <- remDr$findElement(using = "xpath",'//*[@id="Submit"]')
+score_card_smt$clickElement()
+
+score_card_country <- c("JP","AU","CN","HK")
+
+for (k in score_card_country) {
+  country_filter <- remDr$findElement(using = "xpath",'//*[@id="uwcHeader_ddlTZLocale"]')
+  country_filter$sendKeysToElement(list(k))
+  score_card_smt <- remDr$findElement(using = "xpath",'//*[@id="Submit"]')
+  score_card_smt$clickElement()
+  Sys.sleep(1.5)
+  
+  Response <- read_html(remDr$getPageSource()[[1]])
+  html_table(Response, fill = TRUE)
+  score_table <- html_table(Response, fill = TRUE)[[7]]
+  setDT(score_table)
+  index <- score_table[,X6]
+  final_table[Country == k, c("Score_card"):=as.numeric(index[length(index)-1])]
+  
+}
+
+
 reshape_version <- melt(final_table, id.vars = "Country") %>%
   spread(Country, value) %>%
   setcolorder(c("variable", "JP", "AU", "CN", "HK", "TW", "AE"))
 
 write_xlsx(as.data.frame(reshape_version), "H:/Report/Weekly/Report parts/Market_Production.xlsx")
-
 
 # Top20 CTR Report --------------------------------------------------------
 
