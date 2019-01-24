@@ -126,7 +126,7 @@ for (i in Country_list) {
   }
 }
 # change the week number
-current_week <- 4
+current_week <- 5
 
 
 # Current table -----------------------------------------------------------
@@ -151,12 +151,13 @@ table_from_db <- table_from_db %>%
   select(WEEK, Country, `Destination Page`, newsflash, `TOP 20`, `Travelzoo Website`)
 table_from_db[, Country := str_replace(Country, "SEA", "SG")]
 
+last_week_total <- country_table[Week != current_week, ]
 setcolorder(last_week_total, c("Week", "Country", "Destination", "Newflash (Flat fee)", "Top 20 (Flat fee)", "Website Placements"))
 report_from_website <- last_week_total[order(Week, Country)]
 report_from_website[is.na(report_from_website)] <- 0
 report_from_website$Week <- as.character(report_from_website$Week)
-last_week_total <- country_table[Week != current_week, ]
 
+report_from_website[,Media:=NULL]
 
 
 
