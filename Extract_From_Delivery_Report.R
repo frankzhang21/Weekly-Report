@@ -151,7 +151,7 @@ report_from_website <- last_week_total[order(Week,Country)]
 report_from_website[is.na(report_from_website)] <- 0
 report_from_website$Week <- as.character(report_from_website$Week)
 last_week_total <- country_table[Week!=current_week,]
-last_week_total <- country_table
+
 
 
 
@@ -173,3 +173,6 @@ setcolorder(final_compare,c("WEEK","Country","Same_Destination","Same_Newsflash"
 final_compare %>% 
   write_xlsx('H:/Report/Weekly/report_compare.xlsx')
 
+up_date_summary <- country_table[,Media:=Destination+`Newflash (Flat fee)`+`Top 20 (Flat fee)`+`Website Placements` ][,lapply(.SD,sum_nm),by=.(Country)][,Week:=NULL]
+up_date_summary %>% 
+  write_xlsx('H:/Report/Weekly/summary.xlsx')
