@@ -166,7 +166,7 @@ remDr$navigate("https://intranet.travelzoo.com/common/marketing/QualityScoreGrid
 
 this_thursday <- Sys.Date()
 
-this_thursday <- ymd("2019-01-17")
+
 sub_from <- remDr$findElement(using = "xpath",'//*[@id="txtSubscribedFrom"]')
 sub_from$clearElement()
 sub_from_date <- this_thursday-22
@@ -199,7 +199,6 @@ for (k in score_card_country) {
   Sys.sleep(1.5)
   
   Response <- read_html(remDr$getPageSource()[[1]])
-  html_table(Response, fill = TRUE)
   score_table <- html_table(Response, fill = TRUE)[[7]]
   setDT(score_table)
   index <- score_table[,X6]
