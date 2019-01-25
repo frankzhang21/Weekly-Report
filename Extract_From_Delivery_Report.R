@@ -183,4 +183,5 @@ setcolorder(final_compare, c(
 
 up_date_summary <- country_table[, Media := Destination + `Newflash (Flat fee)` + `Top 20 (Flat fee)` + `Website Placements` ][, lapply(.SD, sum_nm), by = .(Country)][, Week := NULL]
 
-write_xlsx(list(compare = final_compare, summary = up_date_summary), "H:/Report/Weekly/Summary_Compare.xlsx")
+write_xlsx(list(compare = final_compare, summary = up_date_summary), str_c("H:/Report/Weekly/Summary_Compare_Week",current_week,".xlsx"))
+
