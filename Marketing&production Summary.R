@@ -205,11 +205,17 @@ for (k in score_card_country) {
   final_table[Country == k, c("Score_card"):=as.numeric(index[length(index)-1])]
   
 }
-
+final_table[,c("CTR","NEWSOPENRATE","PRIMARY","SECONDARY"):=.(Clicks/Delivery,Open_Count/Delivery,Primary/Delivery,Secondary/Delivery)]
+setcolorder(final_table,c("Country","Net_Member","New_sub","Un_sub","Score_card","Delivery","Clicks","CTR","Open_Count","NEWSOPENRATE",
+                          "Primary","PRIMARY","Secondary","SECONDARY"))
 
 reshape_version <- melt(final_table, id.vars = "Country") %>%
   spread(Country, value) %>%
   setcolorder(c("variable", "JP", "AU", "CN", "HK", "TW", "AE"))
+
+var_name <- c("Net Members","New_sub","Un_sub","Score_card","Top 20 Delivery","Newsletter Clicks",     
+              "CTR %","Newsletter Open Count","Newsletter Open Rate %","Pri Clicks","%","Sec Clicks","%")
+reshape_version[,variable:=var_name]
 
 write_xlsx(as.data.frame(reshape_version), "H:/Report/Weekly/Report parts/Market_Production.xlsx")
 

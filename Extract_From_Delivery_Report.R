@@ -157,7 +157,7 @@ report_from_website <- last_week_total[order(Week, Country)]
 report_from_website[is.na(report_from_website)] <- 0
 report_from_website$Week <- as.character(report_from_website$Week)
 
-report_from_website[,Media:=NULL]
+report_from_website[, Media := NULL]
 
 
 
@@ -183,5 +183,4 @@ setcolorder(final_compare, c(
 
 up_date_summary <- country_table[, Media := Destination + `Newflash (Flat fee)` + `Top 20 (Flat fee)` + `Website Placements` ][, lapply(.SD, sum_nm), by = .(Country)][, Week := NULL]
 
-write_xlsx(list(compare = final_compare, summary = up_date_summary), str_c("H:/Report/Weekly/Summary_Compare_Week",current_week,".xlsx"))
-
+write_xlsx(list(compare = final_compare, summary = up_date_summary), str_c("H:/Report/Weekly/Summary_Compare_Week", current_week, ".xlsx"))
