@@ -6,6 +6,29 @@ library(readxl)
 library(data.table)
 library(lubridate)
 
+# Compare total number ----------------------------------------------------
+
+current_tb <- read_excel(file.choose(), sheet = "DB", col_types = "text") # read from last week report db
+setDT(current_tb)
+
+sum_nm <- partial(sum, na.rm = TRUE)
+setnames(current_tb, names(current_tb)[c(4, 5, 10)], c("YEAR_AND_QUARTER", "Country", "Revenue"))
+cols <- copy(names(current_tb))
+current_tb[, c(cols[7:9], cols[11:20]) := NULL]
+current_tb[, Revenue := as.numeric(Revenue)]
+
+b_tb <- current_tb[, .(Revenue = sum_nm(Revenue)), by = c("YEAR", "QUARTER", "WEEK", "YEAR_AND_QUARTER", "Country", "Product")]
+
+
+wide_current_tb <- dcast(b_tb, YEAR + QUARTER + WEEK + YEAR_AND_QUARTER + Country ~ Product, value.var = "Revenue")
+
+table_from_db <- wide_current_tb[YEAR_AND_QUARTER == "2019 Q1", ]
+
+table_from_db <- table_from_db %>%
+  select(WEEK, Country, `Destination Page`, newsflash, `TOP 20`, `Travelzoo Website`)
+table_from_db[, Country := str_replace(Country, "SEA", "SG")]
+table_from_db[,c("Media"):=.(`Destination Page`+newsflash+`TOP 20`+`Travelzoo Website`)]
+total_table_from_db <- table_from_db[,.("sum_media"=sum(Media)),by=Country]
 # Pre-Settings ------------------------------------------------------------
 
 
@@ -19,7 +42,8 @@ Production_query_table <- read_excel("H:/Project/Weekly-Report/Week_Settings_DB.
 mother_production <- Production_query_table$Production[1]
 sub_production <- Production_query_table$Sub_production
 
-country_table <- data.table(Country = rep(Country_list, nrow(week_index)), Destination = 0, Week = 1:nrow(week_index))
+
+total_country_table <- data.table(Country=Country_list,sum_media=0)
 
 
 replace_comma <- partial(str_remove_all, pattern = ",")
@@ -30,6 +54,9 @@ week_index$End_Date <- str_c(day(week_index$End_Date), month(week_index$End_Date
 
 Start_date_list <- week_index$Start_Date
 End_date_list <- week_index$End_Date
+
+total_end_date <- End_date_list[nrow(week_index)]
+current_week <- nrow(week_index)+1
 # Settings-Rselenium ---------------------------------------------------------------
 
 
@@ -65,6 +92,57 @@ exclude_delivery_checkbox$clickElement()
 
 
 for (i in Country_list) {
+  locale <- remDr$findElement(using = "xpath", '//*[@id="ddlLocales"]')
+  locale$sendKeysToElement(list(i))
+  
+  start_date <- remDr$findElement(using = "xpath", '//*[@id="txtStartDate"]')
+  start_date$clearElement()
+  start_date$sendKeysToElement(list(Start_date_list[1]))
+  
+  end_date <- remDr$findElement(using = "xpath", '//*[@id="txtEndDate"]')
+  end_date$clearElement()
+  end_date$sendKeysToElement(list(total_end_date))
+  
+  product_group <- remDr$findElement(using = "xpath", '//*[@id="ddlProductGroup"]')
+  product_group$sendKeysToElement(list(mother_production))
+  
+  sbmt <- remDr$findElement(using = "xpath", '//*[@id="btnSubmit"]')
+  sbmt$clickElement()
+  
+  pivot_table <- remDr$findElement(using = "xpath", '//*[@id="grdPivot_MT"]')
+  
+  pivot_table_text <- pivot_table$getElementText()[[1]]
+  
+  a <- pivot_table_text
+  if (i == "HK") {
+    b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d* HK[¥$]{1} (.+\\.\\d{2}) \\d")
+  } else {
+    b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d*,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")
+  }
+  
+  c <- data.table(b[[1]])
+  d <- c[.N, 2]
+  dev_amount <- d$V2
+  
+  if (dev_amount == "0.00") {
+    final_dev_amount <- dev_amount
+  } else {
+    final_dev_amount <- str_sub(dev_amount, 1, str_locate(dev_amount, " ")[1] - 1)
+  }
+  
+  total_country_table[Country==i,c("sum_media"):=.(to_number(final_dev_amount))]
+  print(str_c("Total Media fee for",i,"up to Week",nrow(week_index),"is",final_dev_amount,sep=" "))
+}
+total_table_from_db
+total_country_table <- total_country_table[order(Country)]
+total_country_table[,c("Is_equal"):=.(total_country_table$sum_media==total_table_from_db$sum_media)]
+non_equal_country <- total_country_table[Is_equal==FALSE,Country]
+
+country_table <- data.table(Country = flatten(map(non_equal_country,~rep(.x,length(non_equal_country)))) %>% str_c(), Destination = 0, Week = 1:nrow(week_index))
+# Loop over weeks ---------------------------------------------------------
+
+
+for (i in non_equal_country) {
   locale <- remDr$findElement(using = "xpath", '//*[@id="ddlLocales"]')
   locale$sendKeysToElement(list(i))
 
@@ -104,7 +182,7 @@ for (i in Country_list) {
       if (i == "HK") {
         b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d* HK[¥$]{1} (.+\\.\\d{2}) \\d")
       } else {
-        b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")
+        b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d*,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")
       }
 
       c <- data.table(b[[1]])
@@ -119,45 +197,32 @@ for (i in Country_list) {
 
       if (str_sub(g, 1, 1) == "D") {
         country_table[Country == i & Week == n, c("Destination") := .(Destination + to_number(final_dev_amount))]
+        print(str_c(i,g,"for Week",n,"is",final_dev_amount,sep = " "))
       } else {
         country_table[Country == i & Week == n, c(g) := .(to_number(final_dev_amount))]
+        print(str_c(i,g,"for Week",n,"is",final_dev_amount,sep = " "))
       }
     }
   }
 }
-# change the week number
-current_week <- 5
+
+
 
 
 # Current table -----------------------------------------------------------
 
-current_tb <- read_excel(file.choose(), sheet = "DB", col_types = "text") # read from last week report db
-setDT(current_tb)
+table_from_db <- table_from_db[Country %in% non_equal_country,]
+table_from_db[,Media:=NULL]
 
-sum_nm <- partial(sum, na.rm = TRUE)
-setnames(current_tb, names(current_tb)[c(4, 5, 10)], c("YEAR_AND_QUARTER", "Country", "Revenue"))
-cols <- copy(names(current_tb))
-current_tb[, c(cols[7:9], cols[11:20]) := NULL]
-current_tb[, Revenue := as.numeric(Revenue)]
+report_from_website
 
-b_tb <- current_tb[, .(Revenue = sum_nm(Revenue)), by = c("YEAR", "QUARTER", "WEEK", "YEAR_AND_QUARTER", "Country", "Product")]
-
-
-wide_current_tb <- dcast(b_tb, YEAR + QUARTER + WEEK + YEAR_AND_QUARTER + Country ~ Product, value.var = "Revenue")
-
-table_from_db <- wide_current_tb[YEAR_AND_QUARTER == "2019 Q1", ]
-
-table_from_db <- table_from_db %>%
-  select(WEEK, Country, `Destination Page`, newsflash, `TOP 20`, `Travelzoo Website`)
-table_from_db[, Country := str_replace(Country, "SEA", "SG")]
-
-last_week_total <- country_table[Week != current_week, ]
+last_week_total <- country_table
 setcolorder(last_week_total, c("Week", "Country", "Destination", "Newflash (Flat fee)", "Top 20 (Flat fee)", "Website Placements"))
 report_from_website <- last_week_total[order(Week, Country)]
 report_from_website[is.na(report_from_website)] <- 0
 report_from_website$Week <- as.character(report_from_website$Week)
 
-report_from_website[, Media := NULL]
+
 
 
 
@@ -183,4 +248,5 @@ setcolorder(final_compare, c(
 
 up_date_summary <- country_table[, Media := Destination + `Newflash (Flat fee)` + `Top 20 (Flat fee)` + `Website Placements` ][, lapply(.SD, sum_nm), by = .(Country)][, Week := NULL]
 
-write_xlsx(list(compare = final_compare, summary = up_date_summary), str_c("H:/Report/Weekly/Summary_Compare_Week", current_week, ".xlsx"))
+write_xlsx(list(compare = final_compare), str_c("H:/Report/Weekly/Summary_Compare_Week", current_week, ".xlsx"))
+
