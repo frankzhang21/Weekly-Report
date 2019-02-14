@@ -133,12 +133,12 @@ for (i in Country_list) {
   total_country_table[Country==i,c("sum_media"):=.(to_number(final_dev_amount))]
   print(str_c("Total Media fee for",i,"up to Week",nrow(week_index),"is",final_dev_amount,sep=" "))
 }
-total_table_from_db
+
 total_country_table <- total_country_table[order(Country)]
 total_country_table[,c("Is_equal"):=.(total_country_table$sum_media==total_table_from_db$sum_media)]
 non_equal_country <- total_country_table[Is_equal==FALSE,Country]
 
-country_table <- data.table(Country = flatten(map(non_equal_country,~rep(.x,length(non_equal_country)))) %>% str_c(), Destination = 0, Week = 1:nrow(week_index))
+country_table <- data.table(Country = flatten(map(non_equal_country,~rep(.x,nrow(week_index)))) %>% str_c(), Destination = 0, Week = 1:nrow(week_index))
 # Loop over weeks ---------------------------------------------------------
 
 
@@ -214,7 +214,6 @@ for (i in non_equal_country) {
 table_from_db <- table_from_db[Country %in% non_equal_country,]
 table_from_db[,Media:=NULL]
 
-report_from_website
 
 last_week_total <- country_table
 setcolorder(last_week_total, c("Week", "Country", "Destination", "Newflash (Flat fee)", "Top 20 (Flat fee)", "Website Placements"))
