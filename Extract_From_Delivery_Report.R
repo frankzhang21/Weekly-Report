@@ -137,7 +137,7 @@ for (i in Country_list) {
 total_country_table <- total_country_table[order(Country)]
 total_country_table[,c("Is_equal"):=.(total_country_table$sum_media==total_table_from_db$sum_media)]
 non_equal_country <- total_country_table[Is_equal==FALSE,Country]
-
+non_equal_country <- non_equal_country[str_detect(non_equal_country,"AU")==FALSE]
 country_table <- data.table(Country = flatten(map(non_equal_country,~rep(.x,nrow(week_index)))) %>% str_c(), Destination = 0, Week = 1:nrow(week_index))
 # Loop over weeks ---------------------------------------------------------
 
