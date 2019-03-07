@@ -135,6 +135,13 @@ for (i in final_table$Country) {
 
 # Top20 CTR Report --------------------------------------------------------
 
+
+# Data for production -----------------------------------------------------
+
+remDr$navigate("https://intranet.travelzoo.com/office/top20/eu/?tzlocale=10")
+
+## Manually adjust week number and show stats
+
 Country_list <- c("AE", "AU", "CA", "CN", "DE", "ES", "FR", "HK", "JP", "TW", "UK", "US")
 
 Top20_CTR <- data.table(Country = Country_list, CTR = "cha", Open_rate = 100)
