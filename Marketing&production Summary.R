@@ -212,7 +212,7 @@ for (k in score_card_country) {
   final_table[Country == k, c("Score_card"):=as.numeric(index[length(index)-1])]
   
 }
-final_table[,c("CTR","NEWSOPENRATE","PRIMARY","SECONDARY"):=.(Clicks/Delivery,Open_Count/Delivery,Primary/Delivery,Secondary/Delivery)]
+final_table[,c("CTR","NEWSOPENRATE","PRIMARY","SECONDARY"):=.(Clicks/Delivery,Open_Count/Delivery,Primary/Delivery,Secondary/Primary)]
 setcolorder(final_table,c("Country","Net_Member","New_sub","Un_sub","Score_card","Delivery","Clicks","CTR","Open_Count","NEWSOPENRATE",
                           "Primary","PRIMARY","Secondary","SECONDARY"))
 
