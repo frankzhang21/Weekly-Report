@@ -164,7 +164,7 @@ for (i in Country_list) {
 
 Top20_CTR[, CTR := as.numeric(CTR)]
 
-write_xlsx(as.data.frame(Top20_CTR), "H:/Report/Weekly/Report parts/Top20_CTR.xlsx")
+write_xlsx(as.data.frame(Top20_CTR), "C:/Users/fzhang/OneDrive - Travelzoo/Report/Weekly/Report parts/Top20_CTR.xlsx")
 
 
 # Score Card --------------------------------------------------------------
