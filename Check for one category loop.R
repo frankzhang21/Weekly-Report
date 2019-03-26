@@ -63,8 +63,8 @@ exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExc
 # Uncomment if want to exclude results with no delivery
 exclude_delivery_checkbox$clickElement()
 
-Country <- "AU"
-product_name <- "CPC"
+Country <- "CN"
+product_name <- "Website"
 sum_number <- 0
 for (i in 1:current_week) {
 
@@ -86,7 +86,7 @@ for (i in 1:current_week) {
   pivot_table_text <- pivot_table$getElementText()[[1]]
   
   a <- pivot_table_text
-  if (i == "HK") {
+  if (Country == "HK") {
     b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d* HK[¥$]{1} (.+\\.\\d{2}) \\d")
   } else {
     b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d*,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")
