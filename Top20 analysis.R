@@ -25,9 +25,14 @@ top10 <- top20[, .SD[order(Clicks, decreasing = TRUE)]
 top10_category <- top20[, .SD[order(Clicks, decreasing = TRUE)]
                [1:10, .(Year_Quarter, Publication_Week, Category, Des, Parent_Des, Headline, Source, IO, Clicks, Secondary_Clicks)],by=Category]
 write_xlsx(by_quarter, "C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/Top20/With_Destinations_2017-2019/by_quarter.xlsx")
+
 write_xlsx(by_quarter_category, "C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/Top20/With_Destinations_2017-2019/by_quarter_category.xlsx")
+
 write_xlsx(by_year, "C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/Top20/With_Destinations_2017-2019/by_year.xlsx")
+
 write_xlsx(by_year_category, "C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/Top20/With_Destinations_2017-2019/by_year_category.xlsx")
+
 write_xlsx(top10, "C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/Top20/With_Destinations_2017-2019/top10.xlsx")
+
 write_xlsx(top10_category, "C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/Top20/With_Destinations_2017-2019/top10_category.xlsx")
 
