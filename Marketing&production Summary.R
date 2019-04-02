@@ -224,7 +224,7 @@ var_name <- c("Net Members","New_sub","Un_sub","Score_card","Top 20 Delivery","N
               "CTR %","Newsletter Open Count","Newsletter Open Rate %","Pri Clicks","%","Sec Clicks","%")
 reshape_version[,variable:=var_name]
 
-write_xlsx(as.data.frame(reshape_version), "H:/Report/Weekly/Report parts/Market_Production.xlsx")
+write_xlsx(as.data.frame(reshape_version), "C:/Users/fzhang/OneDrive - Travelzoo/Report/Weekly/Report parts/Market_Production.xlsx")
 
 
 

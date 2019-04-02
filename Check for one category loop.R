@@ -64,7 +64,10 @@ exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExc
 exclude_delivery_checkbox$clickElement()
 
 Country <- "CN"
-product_name <- "Website"
+product_name <- "TOP20"
+one_table <- week_index
+setDT(one_table)
+one_table[,c("Country","Product"):=.(Country,product_name)]
 sum_number <- 0
 for (i in 1:current_week) {
 
@@ -105,9 +108,12 @@ for (i in 1:current_week) {
 
   print(str_c(Country,product_name,"of Week",i,"is",final_dev_amount,sep=" "))
   sum_number <- sum_number+to_number(final_dev_amount)
+  one_table[Week_Index==i,Amount:=to_number(final_dev_amount)]
   if (i==current_week) {
-    print(str_c(Country,product_name,"from Week","1 to",current_week,"is",formatC(sum_number,format = "f",big.mark = ",",digits = 2),sep=" "))
+    print(str_c(Country,product_name,"from Week",week_index$Week_Index[1],"to",current_week,"is",formatC(sum_number,format = "f",big.mark = ",",digits = 2),sep=" "))
     
   }
 }
+
+write_xlsx(one_table,str_c("C:/Users/fzhang/OneDrive - Travelzoo/Report/One_Category/",Country,"-",product_name," from week ",week_index$Week_Index[1]," to week ",current_week,".xlsx"))
 
