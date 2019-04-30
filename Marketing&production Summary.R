@@ -63,7 +63,7 @@ final_table <- data.table(new_member_by_country)
 
 # junmp to new&unsubs
 
-new_unsub_start_date <- "1/1/2019"
+new_unsub_start_date <- "1/4/2019" # Update the date quarterly
 new_unsub_button <- remDr$findElement(using = "xpath", '//*[@id="rptTabs_ctl02_lnkTab"]')
 new_unsub_button$clickElement()
 
