@@ -108,12 +108,12 @@ for (i in 1:current_week) {
 
   print(str_c(Country,product_name,"of Week",week_index$Week_Index[i],"is",final_dev_amount,sep=" "))
   sum_number <- sum_number+to_number(final_dev_amount)
-  one_table[Week_Index==i,Amount:=to_number(final_dev_amount)]
+  one_table[Week_Index==week_index$Week_Index[i],Amount:=to_number(final_dev_amount)]
   if (i==current_week) {
     print(str_c(Country,product_name,"from Week",week_index$Week_Index[1],"to Week",week_index$Week_Index[i],"is",formatC(sum_number,format = "f",big.mark = ",",digits = 2),sep=" "))
     
   }
 }
 
-write_xlsx(one_table,str_c("C:/Users/fzhang/OneDrive - Travelzoo/Report/One_Category/",Country,"-",product_name," from week ",week_index$Week_Index[1]," to week ",current_week,".xlsx"))
+write_xlsx(one_table,str_c("C:/Users/fzhang/OneDrive - Travelzoo/Report/One_Category/",Country,"-",product_name," from Week ",first(week_index$Week_Index)," to Week ",last(week_index$Week_Index),".xlsx"))
 
