@@ -63,8 +63,8 @@ exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExc
 # Uncomment if want to exclude results with no delivery
 exclude_delivery_checkbox$clickElement()
 
-Country <- "AU"
-product_name <- "CPC"
+Country <- "CN"
+product_name <- "Top20"
 one_table <- week_index
 setDT(one_table)
 one_table[,c("Country","Product"):=.(Country,product_name)]
@@ -90,9 +90,9 @@ for (i in 1:current_week) {
   
   a <- pivot_table_text
   if (Country == "HK") {
-    b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d* HK[¥$]{1} (.+\\.\\d{2}) \\d")
+    b <- str_match_all(a, "[:alpha:]{1} \\d+,*\\d* HK[¥$]{1} (.+\\.\\d{2}) \\d")
   } else {
-    b <- str_match_all(a, "[:lower:]{1} \\d+,*\\d*,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")
+    b <- str_match_all(a, "[:alpha:]{1} \\d+,*\\d*,*\\d* [¥$]{1} (.+\\.\\d{2}) \\d")
   }
   
   c <- data.table(b[[1]])
