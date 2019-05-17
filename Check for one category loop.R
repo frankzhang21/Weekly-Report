@@ -63,8 +63,8 @@ exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExc
 # Uncomment if want to exclude results with no delivery
 exclude_delivery_checkbox$clickElement()
 
-Country <- "CN"
-product_name <- "TOP20"
+Country <- "AU"
+product_name <- "CPC"
 one_table <- week_index
 setDT(one_table)
 one_table[,c("Country","Product"):=.(Country,product_name)]
@@ -106,11 +106,11 @@ for (i in 1:current_week) {
   }
   
 
-  print(str_c(Country,product_name,"of Week",i,"is",final_dev_amount,sep=" "))
+  print(str_c(Country,product_name,"of Week",week_index$Week_Index[i],"is",final_dev_amount,sep=" "))
   sum_number <- sum_number+to_number(final_dev_amount)
   one_table[Week_Index==i,Amount:=to_number(final_dev_amount)]
   if (i==current_week) {
-    print(str_c(Country,product_name,"from Week",week_index$Week_Index[1],"to",current_week,"is",formatC(sum_number,format = "f",big.mark = ",",digits = 2),sep=" "))
+    print(str_c(Country,product_name,"from Week",week_index$Week_Index[1],"to Week",week_index$Week_Index[i],"is",formatC(sum_number,format = "f",big.mark = ",",digits = 2),sep=" "))
     
   }
 }
