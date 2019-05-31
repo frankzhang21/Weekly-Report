@@ -63,7 +63,7 @@ exclude_delivery_checkbox <- remDr$findElement(using = "xpath", '//*[@id="chkExc
 # Uncomment if want to exclude results with no delivery
 exclude_delivery_checkbox$clickElement()
 
-Country <- "CN"
+Country <- "AU"
 product_name <- "Top20"
 one_table <- week_index
 setDT(one_table)
