@@ -43,7 +43,7 @@ remDr$setTimeout(type = "page load", milliseconds = 200000)
 
 remDr$navigate("https://intranet.travelzoo.com/dashboard/subscriber/")
 
-A <- read_excel('C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/CN/Book3.xlsx')
+A <- read_excel(file.choose())
 
 setDT(A)
 links <- str_c("https://intranet.travelzoo.com/office/Showclassified.aspx?id=",A$AD)
@@ -54,7 +54,7 @@ links <- str_c("https://intranet.travelzoo.com/office/Showclassified.aspx?id=",A
 
 # Loop --------------------------------------------------------------------
 
-for (i in 1:3775) {
+for (i in 1:1085) {
   remDr$navigate(links[i])
   print(i)
   tryCatch({webElem <- remDr$findElements("css", "iframe")
@@ -66,4 +66,22 @@ for (i in 1:3775) {
   finally = next)
 }
 
-write_xlsx(A,'C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/CN/result.xlsx')
+write_xlsx(A,'C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/2017_des.xlsx')
+
+# Second Loop --------------------------------------------------------------------
+i <- 1
+for (i in 1:562) {
+  remDr$navigate(links[i])
+  print(i)
+  tryCatch({
+    hyper <- remDr$findElement(using = "xpath",'/html/body/table[2]/tbody/tr/td/a')
+    linkss <- hyper$getElementAttribute("href")[[1]]
+    remDr$navigate(linkss)
+  webel <- remDr$findElement(using = "xpath", '//*[@id="deal-where"]')
+  loc <- webel$getElementText()[[1]]
+  A[AD==A$AD[i],c("location"):=.(as.character(loc))]},
+  error = function(e){next},
+  finally = next)
+}
+
+write_xlsx(A,'C:/Users/fzhang/OneDrive - Travelzoo/Report/Top20 Analysis/AU/second_des.xlsx')

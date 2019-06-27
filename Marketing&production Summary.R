@@ -63,7 +63,7 @@ final_table <- data.table(new_member_by_country)
 
 # junmp to new&unsubs
 
-new_unsub_start_date <- "1/4/2019" # Update the date quarterly
+new_unsub_start_date <- "1/7/2019" # Update the date quarterly
 new_unsub_button <- remDr$findElement(using = "xpath", '//*[@id="rptTabs_ctl02_lnkTab"]')
 new_unsub_button$clickElement()
 
@@ -227,4 +227,19 @@ reshape_version[,variable:=var_name]
 write_xlsx(as.data.frame(reshape_version), "C:/Users/fzhang/OneDrive - Travelzoo/Report/Weekly/Report parts/Market_Production.xlsx")
 
 
+library(RDCOMClient)
 
+# Open a specific workbook in Excel:
+xlApp <- COMCreate("Excel.Application")
+xlWbk <- xlApp$Workbooks()$Open("C:/Users/fzhang/OneDrive - Travelzoo/Report/Weekly/VBA_Auto/Paste_Marketing.xlsm")
+
+# this line of code might be necessary if you want to see your spreadsheet:
+# its ok to run macro without visible excel application
+#xlApp[['Visible']] <- TRUE 
+
+# Run the macro called "MyMacro":
+xlApp$Run("Paste_Marketing")
+
+# Close the workbook and quit the app:
+xlWbk$Close(FALSE)# not save
+xlApp$Quit()
